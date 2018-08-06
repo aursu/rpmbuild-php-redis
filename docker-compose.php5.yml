@@ -1,0 +1,55 @@
+version: "3.5"
+services:
+  centos7redisbuildbasephp5:
+    networks:
+      - buildnet
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      args:
+        image: build-php5
+      network: buildnet
+    image: aursu/peclbuild:7-redis-base-php5
+  centos6redisbuildbasephp5:
+    networks:
+      - buildnet
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      args:
+        centos: 6
+        image: build-php5
+      network: buildnet
+    image: aursu/peclbuild:6-redis-base-php5
+  centos7redisbuildphp5:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm7:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      args:
+        image: redis-base-php5
+    image: aursu/peclbuild:7-redis-php5
+  centos6redisbuildphp5:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm6:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      args:
+        centos: 6
+        image: redis-base-php5
+    image: aursu/peclbuild:6-redis-php5
+
+networks:
+  buildnet:
+    external: true
+    name: buildnet
+
+volumes:
+  rpms:
+    name: rpms
+  rpm6:
+    name: rpm6
+  rpm7:
+    name: rpm7

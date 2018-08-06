@@ -1,0 +1,49 @@
+version: "3.5"
+services:
+  centos7redisbuildbase:
+    networks:
+      - buildnet
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      network: buildnet
+    image: aursu/peclbuild:7-redis-base
+  centos6redisbuildbase:
+    networks:
+      - buildnet
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      args:
+        centos: 6
+      network: buildnet
+    image: aursu/peclbuild:6-redis-base
+  centos7redisbuild:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm7:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+    image: aursu/peclbuild:7-redis
+  centos6redisbuild:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm6:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      args:
+        centos: 6
+    image: aursu/peclbuild:6-redis
+
+networks:
+  buildnet:
+    external: true
+    name: buildnet
+
+volumes:
+  rpms:
+    name: rpms
+  rpm6:
+    name: rpm6
+  rpm7:
+    name: rpm7
