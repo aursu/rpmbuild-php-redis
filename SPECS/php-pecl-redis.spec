@@ -6,6 +6,11 @@
 #
 # Please, preserve the changelog entries
 #
+%{!?php_inidir:  %global php_inidir  %{_sysconfdir}/php.d}
+%{!?php_incldir: %global php_incldir %{_includedir}/php}
+%{!?__pecl:      %global __pecl      %{_bindir}/pecl}
+%{!?__php:       %global __php       %{_bindir}/php}
+
 %global pecl_name   redis
 %global with_zts    0%{?__ztsphp:1}
 %global with_tests  0%{!?_without_tests:1}
@@ -14,7 +19,7 @@
 Summary:       Extension for communicating with the Redis key-value store
 Name:          php-pecl-redis
 Version:       3.1.6
-Release:       1%{?dist}
+Release:       2%{?dist}
 License:       PHP
 Group:         Development/Languages
 URL:           http://pecl.php.net/package/redis
@@ -28,6 +33,8 @@ BuildRequires: php-pecl-igbinary-devel
 BuildRequires: redis >= 2.6
 %endif
 
+Requires(post): %{__pecl}
+Requires(postun): %{__pecl}
 Requires:      php(zend-abi) = %{php_zend_api}
 Requires:      php(api) = %{php_core_api}
 Requires:      php-igbinary%{?_isa}
@@ -38,6 +45,11 @@ Provides:      php-redis%{?_isa} = %{version}-%{release}
 Provides:      php-pecl(%{pecl_name}) = %{version}
 Provides:      php-pecl(%{pecl_name})%{?_isa} = %{version}
 
+%if 0%{?fedora} < 20 && 0%{?rhel} < 7
+# Filter shared private
+%{?filter_provides_in: %filter_provides_in %{_libdir}/.*\.so$}
+%{?filter_setup}
+%endif
 
 %description
 The phpredis extension provides an API for communicating
@@ -79,7 +91,7 @@ cat > %{ini_name} << 'EOF'
 ; Enable %{pecl_name} extension module
 extension = %{pecl_name}.so
 
-; phpredis can be used to store PHP sessions. 
+; phpredis can be used to store PHP sessions.
 ; To do this, uncomment and configure below
 
 ; RPM note : save_handler and save_path are defined
@@ -194,6 +206,13 @@ exit $ret
 : Upstream test suite disabled
 %endif
 
+%post
+%{pecl_install} %{pecl_xmldir}/%{name}.xml >/dev/null || :
+
+%postun
+if [ $1 -eq 0 ] ; then
+    %{pecl_uninstall} %{pecl_name} >/dev/null || :
+fi
 
 %files
 %license NTS/COPYING
@@ -210,6 +229,9 @@ exit $ret
 
 
 %changelog
+* Mon Aug  6 2018 Alexander Ursu <alexsnder.ursu@gmail.com> - 3.1.6-2
+- Added rpm settings
+
 * Wed Jan  3 2018 Remi Collet <remi@remirepo.net> - 3.1.6-1
 - Update to 3.1.6 (stable)
 
@@ -313,4 +335,3 @@ exit $ret
 
 * Tue Aug 28 2012 Remi Collet <remi@fedoraproject.org> - 2.2.1-1
 - initial package
-
