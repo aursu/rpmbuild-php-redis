@@ -126,10 +126,6 @@ jobs:
             docker push aursu/peclbuild:6-redis-base
             docker push aursu/peclbuild:7-redis
             docker push aursu/peclbuild:6-redis
-      - store_artifacts:
-          path: ~/el6/RPMS
-      - store_artifacts:
-          path: ~/el7/RPMS
   build5:
     machine:
       docker_layer_caching: true
@@ -256,8 +252,6 @@ jobs:
           key: rpm-cache-v5-{{ checksum "requirements.txt" }}-{{ checksum "SPECS/php-pecl-redis.spec" }}
           paths:
             - ~/php5
-      - store_artifacts:
-          path: ~/php5
 workflows:
   version: 2
   redisbuild:
