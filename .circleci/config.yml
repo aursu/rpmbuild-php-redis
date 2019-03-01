@@ -1,10 +1,10 @@
 version: 2
 jobs:
-  build:
+  build71:
     machine:
       docker_layer_caching: true
     environment:
-      IGBINARY_VERSION: 2.0.7-1
+      BINTRAY_REPO: custom
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-redis
     steps:
       - run:
@@ -17,20 +17,6 @@ jobs:
           command: |
             sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
-      - run:
-          name: Create Build User/Group
-          command: |
-            if getent group centos; then
-              sudo groupmod -o -g 48 centos
-            else
-              sudo groupadd -o -g 48 centos
-            fi
-
-            if getent passwd centos; then
-              sudo usermod -o -u 48 -g centos centos
-            else
-              sudo useradd -o -u 48 -g centos -M -d /var/www/html centos
-            fi
       - checkout
       - run:
           name: Git submodules sync
@@ -38,75 +24,24 @@ jobs:
             git submodule sync
             git submodule update --init
       - run:
-          name: Start docker services for rpmbuild
+          name: Pull images for RPM build docker services
           command: |
             docker-compose -f rpmbuild/docker-compose.yml pull
-            docker-compose -f rpmbuild/docker-compose.yml up -d
+            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
+      - run:
+          name: Start docker services for rpmbuild
+          command: docker-compose -f rpmbuild/docker-compose.yml up -d
           background: true
           no_output_timeout: 2h
-      - restore_cache:
-          keys:
-            - rpm-cache-v7-{{ checksum "requirements.txt" }}-{{ checksum "SPECS/php-pecl-redis.spec" }}
-            - rpm-cache-v7-{{ checksum "requirements.txt" }}-
-            - rpm-cache-v7-
-      - run:
-          name: Restore Repository
-          command: |
-            sleep 30
-            if [ -d ~/el6/RPMS ]; then
-              sudo chown -R centos:centos ~/el6/RPMS
-              docker cp -a ~/el6/RPMS rpmbuild_webrepo_1:/home/centos-6/rpmbuild/
-            fi
-            if [ -d ~/el7/RPMS ]; then
-              sudo chown -R centos:centos ~/el7/RPMS
-              docker cp -a ~/el7/RPMS rpmbuild_webrepo_1:/home/centos-7/rpmbuild/
-            fi
-      - run:
-          name: Checkout PHP igbinary pecl module
-          command: |
-            git clone https://github.com/aursu/rpmbuild-php-igbinary.git
-            cd rpmbuild-php-igbinary
-            git checkout $IGBINARY_VERSION
-      - run:
-          name: Build PHP igbinary pecl module
-          command: |
-            docker run -ti --rm --net buildnet -u root aursu/rpmbuild:7-build \
-            yum -q list --disablerepo=* --enablerepo custom php-pecl-igbinary-devel | grep -q $IGBINARY_VERSION ||
-            {
-              docker pull aursu/peclbuild:7-igbinary
-              docker-compose -f rpmbuild-php-igbinary/docker-compose.yml up centos7igbinarybuild
-            }
-            docker run -ti --rm --net buildnet -u root aursu/rpmbuild:6-build \
-            yum -q list --disablerepo=* --enablerepo custom php-pecl-igbinary-devel | grep -q $IGBINARY_VERSION ||
-            {
-              docker pull aursu/peclbuild:6-igbinary
-              docker-compose -f rpmbuild-php-igbinary/docker-compose.yml up centos6igbinarybuild
-            }
       - run:
           name: Build Docker images
-          command: |
-            sleep 30
-            docker-compose build --no-cache
+          command: docker-compose build --no-cache
       - run:
           name: Build RPM packages
           command: docker-compose up
       - run:
-          name: Copy RPM packages
-          command: |
-            sudo rm -rf ~/el6 ~/el7
-            mkdir -p ~/el6 ~/el7
-            docker cp rpmbuild_webrepo_1:/home/centos-6/rpmbuild/RPMS ~/el6/
-            docker cp rpmbuild_webrepo_1:/home/centos-7/rpmbuild/RPMS ~/el7/
-            sudo chown -R centos:centos ~/el6/RPMS ~/el7/RPMS
-      - save_cache:
-          key: rpm-cache-v7-{{ checksum "requirements.txt" }}-{{ checksum "SPECS/php-pecl-redis.spec" }}
-          paths:
-            - ~/el6/RPMS
-            - ~/el7/RPMS
-      - run:
           name: Upload RPM packages into Bintray
           command: |
-            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
             docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
               -e BINTRAY_USER=$BINTRAY_USER \
               -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
@@ -117,20 +52,10 @@ jobs:
               -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
               -e BINTRAY_REPO=$BINTRAY_REPO \
               -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos6bintray
-      - run:
-          name: Upload Docker images
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            sleep 30
-            docker push aursu/peclbuild:7-redis-base
-            docker push aursu/peclbuild:6-redis-base
-            docker push aursu/peclbuild:7-redis
-            docker push aursu/peclbuild:6-redis
   build5:
     machine:
       docker_layer_caching: true
     environment:
-      IGBINARY_VERSION: 2.0.7-1
       BINTRAY_REPO: php5custom
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-redis
     steps:
@@ -144,20 +69,6 @@ jobs:
           command: |
             sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
-      - run:
-          name: Create Build User/Group
-          command: |
-            if getent group centos; then
-              sudo groupmod -o -g 48 centos
-            else
-              sudo groupadd -o -g 48 centos
-            fi
-
-            if getent passwd centos; then
-              sudo usermod -o -u 48 -g centos centos
-            else
-              sudo useradd -o -u 48 -g centos -M -d /var/www/html centos
-            fi
       - checkout
       - run:
           name: Git submodules sync
@@ -165,62 +76,24 @@ jobs:
             git submodule sync
             git submodule update --init
       - run:
-          name: Start docker services for rpmbuild
+          name: Pull images for RPM build docker services
           command: |
             docker-compose -f rpmbuild/docker-compose.yml pull
-            docker-compose -f rpmbuild/docker-compose.yml up -d
+            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
+      - run:
+          name: Start docker services for rpmbuild
+          command: docker-compose -f rpmbuild/docker-compose.yml up -d
           background: true
           no_output_timeout: 2h
-      - restore_cache:
-          keys:
-            - rpm-cache-v5-{{ checksum "requirements.txt" }}-{{ checksum "SPECS/php-pecl-redis.spec" }}
-            - rpm-cache-v5-{{ checksum "requirements.txt" }}-
-            - rpm-cache-v5-
-      - run:
-          name: Restore Repository
-          command: |
-            sleep 30
-            if [ -d ~/php5/el6/RPMS ]; then
-              sudo chown -R centos:centos ~/php5/el6/RPMS
-              docker cp -a ~/php5/el6/RPMS rpmbuild_webrepo_1:/home/centos-6/rpmbuild/
-            fi
-            if [ -d ~/php5/el7/RPMS ]; then
-              sudo chown -R centos:centos ~/php5/el7/RPMS
-              docker cp -a ~/php5/el7/RPMS rpmbuild_webrepo_1:/home/centos-7/rpmbuild/
-            fi
-      - run:
-          name: Checkout PHP igbinary pecl module
-          command: |
-            git clone https://github.com/aursu/rpmbuild-php-igbinary.git
-            cd rpmbuild-php-igbinary
-            git checkout $PHP_APCU_VERSION
-      - run:
-          name: Build PHP igbinary pecl module
-          command: |
-            docker run -ti --rm --net buildnet -u root aursu/rpmbuild:7-build \
-            yum -q list --disablerepo=* --enablerepo custom php-pecl-igbinary-devel | grep -q $IGBINARY_VERSION ||
-            {
-              docker pull aursu/peclbuild:7-igbinary-php5
-              docker-compose -f rpmbuild-php-igbinary/docker-compose.php5.yml up centos7igbinarybuildphp5
-            }
-            docker run -ti --rm --net buildnet -u root aursu/rpmbuild:6-build \
-            yum -q list --disablerepo=* --enablerepo custom php-pecl-igbinary-devel | grep -q $IGBINARY_VERSION ||
-            {
-              docker pull aursu/peclbuild:6-igbinary-php5
-              docker-compose -f rpmbuild-php-igbinary/docker-compose.php5.yml up centos6igbinarybuildphp5
-            }
       - run:
           name: Build Docker images (PHP 5)
-          command: |
-            sleep 30
-            docker-compose -f docker-compose.php5.yml build --no-cache
+          command: docker-compose -f docker-compose.php5.yml build --no-cache
       - run:
           name: Build RPM packages (PHP 5)
           command: docker-compose -f docker-compose.php5.yml up
       - run:
           name: Upload RPM packages into Bintray
           command: |
-            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
             docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
               -e BINTRAY_USER=$BINTRAY_USER \
               -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
@@ -231,30 +104,58 @@ jobs:
               -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
               -e BINTRAY_REPO=$BINTRAY_REPO \
               -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos6bintray
+build73:
+    machine:
+      docker_layer_caching: true
+    environment:
+      BINTRAY_REPO: php73custom
+      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-redis
+    steps:
       - run:
-          name: Copy RPM packages (PHP 5)
+          name: Upgrade Docker CE
           command: |
-            sudo rm -rf ~/php5
-            mkdir -p ~/php5/el6 ~/php5/el7
-            docker cp rpmbuild_webrepo_1:/home/centos-6/rpmbuild/RPMS ~/php5/el6/
-            docker cp rpmbuild_webrepo_1:/home/centos-7/rpmbuild/RPMS ~/php5/el7/
-            sudo chown -R centos:centos ~/php5/*
+            sudo apt-get update
+            sudo apt-get install docker-ce=18.03.1~ce-0~ubuntu
       - run:
-          name: Upload Docker images (PHP 5)
+          name: Upgrade Docker Compose
           command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            sleep 30
-            docker push aursu/peclbuild:7-redis-base-php5
-            docker push aursu/peclbuild:6-redis-base-php5
-            docker push aursu/peclbuild:7-redis-php5
-            docker push aursu/peclbuild:6-redis-php5
-      - save_cache:
-          key: rpm-cache-v5-{{ checksum "requirements.txt" }}-{{ checksum "SPECS/php-pecl-redis.spec" }}
-          paths:
-            - ~/php5
+            sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+      - checkout
+      - run:
+          name: Git submodules sync
+          command: |
+            git submodule sync
+            git submodule update --init
+      - run:
+          name: Pull images for RPM build docker services
+          command: |
+            docker-compose -f rpmbuild/docker-compose.yml pull
+            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
+      - run:
+          name: Start docker services for rpmbuild
+          command: docker-compose -f rpmbuild/docker-compose.yml up -d
+          background: true
+          no_output_timeout: 2h
+      - run:
+          name: Build Docker images (PHP 7.3)
+          command: docker-compose -f docker-compose.php73.yml build --no-cache
+      - run:
+          name: Build RPM packages (PHP 7.3)
+          command: docker-compose -f docker-compose.php73.yml up
+      - run:
+          name: Upload RPM packages into Bintray
+          command: |
+            docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
+              -e BINTRAY_USER=$BINTRAY_USER \
+              -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
+              -e BINTRAY_REPO=$BINTRAY_REPO \
+              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos7bintray
+
 workflows:
   version: 2
   redisbuild:
     jobs:
-      - build
+      - build71
       - build5
+      - build73
