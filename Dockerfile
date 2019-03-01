@@ -3,7 +3,7 @@ ARG image=php-igbinary-7.1
 
 FROM aursu/peclbuild:${centos}-${image}
 
-RUN yum -y --enablerepo custom install \
+RUN yum -y install \
         redis \
     && yum clean all && rm -rf /var/cache/yum
 
