@@ -104,7 +104,7 @@ jobs:
               -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
               -e BINTRAY_REPO=$BINTRAY_REPO \
               -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos6bintray
-build73:
+  build73:
     machine:
       docker_layer_caching: true
     environment:
