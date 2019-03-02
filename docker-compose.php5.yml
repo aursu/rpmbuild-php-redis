@@ -1,5 +1,12 @@
 version: "3.5"
 services:
+  centos7redisphp5:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm7:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      dockerfile: Dockerfile.php-5
   centos6redisphp5:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
@@ -9,13 +16,6 @@ services:
       dockerfile: Dockerfile.php-5
       args:
         centos: 6
-  centos7redisphp5:
-    volumes:
-      - rpms:/home/centos/rpmbuild/SRPMS
-      - rpm7:/home/centos/rpmbuild/RPMS
-    build:
-      context: .
-      dockerfile: Dockerfile.php-5
 
 volumes:
   rpms:
