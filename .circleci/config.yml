@@ -4,7 +4,7 @@ jobs:
     machine:
       docker_layer_caching: true
     environment:
-      BINTRAY_REPO: custom
+      BINTRAY_REPO: php71custom
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-redis
     steps:
       - run:
@@ -15,7 +15,7 @@ jobs:
       - run:
           name: Upgrade Docker Compose
           command: |
-            sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+            sudo curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
       - checkout
       - run:
@@ -35,7 +35,7 @@ jobs:
           no_output_timeout: 2h
       - run:
           name: Build Docker images
-          command: docker-compose build --no-cache
+          command: docker-compose build --no-cache --pull
       - run:
           name: Build RPM packages
           command: docker-compose up
@@ -67,7 +67,7 @@ jobs:
       - run:
           name: Upgrade Docker Compose
           command: |
-            sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+            sudo curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
       - checkout
       - run:
@@ -87,7 +87,7 @@ jobs:
           no_output_timeout: 2h
       - run:
           name: Build Docker images (PHP 5)
-          command: docker-compose -f docker-compose.php5.yml build --no-cache
+          command: docker-compose -f docker-compose.php5.yml build --no-cache --pull
       - run:
           name: Build RPM packages (PHP 5)
           command: docker-compose -f docker-compose.php5.yml up
@@ -119,7 +119,7 @@ jobs:
       - run:
           name: Upgrade Docker Compose
           command: |
-            sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+            sudo curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
       - checkout
       - run:
@@ -139,7 +139,7 @@ jobs:
           no_output_timeout: 2h
       - run:
           name: Build Docker images (PHP 7.3)
-          command: docker-compose -f docker-compose.php73.yml build --no-cache
+          command: docker-compose -f docker-compose.php73.yml build --no-cache --pull
       - run:
           name: Build RPM packages (PHP 7.3)
           command: docker-compose -f docker-compose.php73.yml up
