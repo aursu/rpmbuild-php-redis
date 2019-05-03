@@ -6,18 +6,17 @@
 #
 # Please, preserve the changelog entries
 #
-%{!?php_inidir:  %global php_inidir  %{_sysconfdir}/php.d}
-%{!?php_incldir: %global php_incldir %{_includedir}/php}
-%{!?__pecl:      %global __pecl      %{_bindir}/pecl}
-%{!?__php:       %global __php       %{_bindir}/php}
+%{!?php_inidir:  %global php_inidir  %{_sysconfdir}/php7/php.d}
+%{!?php_incldir: %global php_incldir %{_includedir}/php7}
+%{!?__pecl:      %global __pecl      %{_bindir}/pecl7}
+%{!?__php:       %global __php       %{_bindir}/php7}
 
 %global pecl_name   redis
-%global with_zts    0%{?__ztsphp:1}
 %global with_tests  0%{!?_without_tests:1}
 %global ini_name    50-%{pecl_name}.ini
 
 Summary:       Extension for communicating with the Redis key-value store
-Name:          php-pecl-redis
+Name:          php7-pecl-redis
 Version:       3.1.6
 Release:       2%{?dist}
 License:       PHP
@@ -25,9 +24,10 @@ Group:         Development/Languages
 URL:           http://pecl.php.net/package/redis
 Source0:       http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 
-BuildRequires: php-devel
-BuildRequires: php-pear
-BuildRequires: php-pecl-igbinary-devel
+BuildRequires: php7-devel
+BuildRequires: php7-pear
+BuildRequires: php7-pecl-igbinary-devel
+BuildConflicts: php-devel
 # to run Test suite
 %if %{with_tests}
 BuildRequires: redis >= 2.6
@@ -37,11 +37,13 @@ Requires(post): %{__pecl}
 Requires(postun): %{__pecl}
 Requires:      php(zend-abi) = %{php_zend_api}
 Requires:      php(api) = %{php_core_api}
-Requires:      php-igbinary%{?_isa}
+Requires:      php7-igbinary%{?_isa}
 
 Obsoletes:     php-redis < %{version}
 Provides:      php-redis = %{version}-%{release}
+Provides:      php7-redis = %{version}-%{release}
 Provides:      php-redis%{?_isa} = %{version}-%{release}
+Provides:      php7-redis%{?_isa} = %{version}-%{release}
 Provides:      php-pecl(%{pecl_name}) = %{version}
 Provides:      php-pecl(%{pecl_name})%{?_isa} = %{version}
 
@@ -81,11 +83,6 @@ if test "x${extver}" != "x%{version}"; then
 fi
 cd ..
 
-%if %{with_zts}
-# duplicate for ZTS build
-cp -pr NTS ZTS
-%endif
-
 # Drop in the bit of configuration
 cat > %{ini_name} << 'EOF'
 ; Enable %{pecl_name} extension module
@@ -116,36 +113,18 @@ EOF
 
 %build
 cd NTS
-%{_bindir}/phpize
+%{_bindir}/phpize7
 %configure \
     --enable-redis \
     --enable-redis-session \
     --enable-redis-igbinary \
-    --with-php-config=%{_bindir}/php-config
+    --with-php-config=%{_bindir}/php7-config
 make %{?_smp_mflags}
-
-%if %{with_zts}
-cd ../ZTS
-%{_bindir}/zts-phpize
-%configure \
-    --enable-redis \
-    --enable-redis-session \
-    --enable-redis-igbinary \
-    --with-php-config=%{_bindir}/zts-php-config
-make %{?_smp_mflags}
-%endif
-
 
 %install
 # Install the NTS stuff
 make -C NTS install INSTALL_ROOT=%{buildroot}
 install -D -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
-
-%if %{with_zts}
-# Install the ZTS stuff
-make -C ZTS install INSTALL_ROOT=%{buildroot}
-install -D -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
-%endif
 
 # Install the package XML file
 install -D -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
@@ -163,13 +142,6 @@ done
     --define extension=igbinary.so \
     --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so \
     --modules | grep %{pecl_name}
-
-%if %{with_zts}
-%{__ztsphp} --no-php-ini \
-    --define extension=igbinary.so \
-    --define extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so \
-    --modules | grep %{pecl_name}
-%endif
 
 %if %{with_tests}
 cd NTS/tests
@@ -221,12 +193,6 @@ fi
 
 %{php_extdir}/%{pecl_name}.so
 %config(noreplace) %{php_inidir}/%{ini_name}
-
-%if %{with_zts}
-%{php_ztsextdir}/%{pecl_name}.so
-%config(noreplace) %{php_ztsinidir}/%{ini_name}
-%endif
-
 
 %changelog
 * Mon Aug  6 2018 Alexander Ursu <alexsnder.ursu@gmail.com> - 3.1.6-2
