@@ -6,6 +6,13 @@ services:
       - rpm7:/home/centos/rpmbuild/RPMS
     build:
       context: .
+  centos7redisrel:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm7:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      dockerfile: Dockerfile.rel
   centos6redis:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS

@@ -1,0 +1,16 @@
+FROM aursu/peclbuild:7-php7-igbinary-7.1
+
+RUN yum -y install \
+        redis \
+        liblzf-devel \
+    && yum clean all && rm -rf /var/cache/yum
+
+COPY SOURCES ${BUILD_TOPDIR}/SOURCES
+COPY SPECS ${BUILD_TOPDIR}/SPECS
+
+RUN chown -R $BUILD_USER ${BUILD_TOPDIR}/{SOURCES,SPECS}
+
+USER $BUILD_USER
+
+ENTRYPOINT ["/usr/bin/rpmbuild", "php7-pecl-redis.spec"]
+CMD ["-ba"]
