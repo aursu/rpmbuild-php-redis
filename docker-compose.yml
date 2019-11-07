@@ -21,6 +21,15 @@ services:
       context: .
       args:
         centos: 8
+  centos8redisrel:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm8:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      args:
+        centos: 8
+      dockerfile: Dockerfile.rel
 
 volumes:
   rpms:

@@ -9,12 +9,13 @@
 #
 # Please, preserve the changelog entries
 #
+%{!?php_inidir:  %global php_inidir  %{_sysconfdir}/php7/php.d}
+%{!?__php:       %global __php       %{_bindir}/php7}
 
 # we don't want -z defs linker flag
 %undefine _strict_symbol_defs_build
 
 %global pecl_name   redis
-%global with_zts    0%{!?_without_zts:%{?__ztsphp:1}}
 %global with_tests  0%{!?_without_tests:1}
 # after 40-igbinary
 %global ini_name    50-%{pecl_name}.ini
@@ -23,7 +24,7 @@
 #global upstream_prever  RC2
 
 Summary:       Extension for communicating with the Redis key-value store
-Name:          php-pecl-redis4
+Name:          php7-pecl-redis4
 Version:       %{upstream_version}
 Release:       1%{?dist}
 Source0:       http://pecl.php.net/get/%{pecl_name}-%{upstream_version}%{?upstream_prever}.tgz
@@ -31,9 +32,10 @@ License:       PHP
 URL:           http://pecl.php.net/package/redis
 
 BuildRequires: gcc
-BuildRequires: php-devel
-BuildRequires: php-pear
-BuildRequires: php-pecl-igbinary-devel
+BuildRequires: php7-devel
+BuildRequires: php7-pear
+BuildRequires: php7-pecl-igbinary-devel
+BuildConflicts: php-devel
 BuildRequires: liblzf-devel
 # to run Test suite
 %if %{with_tests}
@@ -42,21 +44,25 @@ BuildRequires: redis >= 3
 
 Requires:      php(zend-abi) = %{php_zend_api}
 Requires:      php(api) = %{php_core_api}
-Requires:      php-pecl(igbinary)%{?_isa}
+Requires:      php7-igbinary%{?_isa}
 
-Obsoletes:     php-%{pecl_name}               < 3
+Obsoletes:     php7-%{pecl_name}               < 3
 Provides:      php-%{pecl_name}               = %{version}
+Provides:      php7-%{pecl_name}               = %{version}
 Provides:      php-%{pecl_name}%{?_isa}       = %{version}
+Provides:      php7-%{pecl_name}%{?_isa}       = %{version}
 Provides:      php-pecl(%{pecl_name})         = %{version}
 Provides:      php-pecl(%{pecl_name})%{?_isa} = %{version}
 
 %if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
-Obsoletes:     php-pecl-%{pecl_name}          < 4
+Obsoletes:     php7-pecl-%{pecl_name}          < 4
 Provides:      php-pecl-%{pecl_name}          = %{version}-%{release}
+Provides:      php7-pecl-%{pecl_name}          = %{version}-%{release}
 Provides:      php-pecl-%{pecl_name}%{?_isa}  = %{version}-%{release}
+Provides:      php7-pecl-%{pecl_name}%{?_isa}  = %{version}-%{release}
 %else
 # A single version can be installed
-Conflicts:     php-pecl-%{pecl_name} < 4
+Conflicts:     php7-pecl-%{pecl_name} < 4
 %endif
 
 
@@ -91,11 +97,6 @@ if test "x${extver}" != "x%{upstream_version}%{?upstream_prever}"; then
    exit 1
 fi
 cd ..
-
-%if %{with_zts}
-# duplicate for ZTS build
-cp -pr NTS ZTS
-%endif
 
 # Drop in the bit of configuration
 cat > %{ini_name} << 'EOF'
@@ -146,29 +147,15 @@ EOF
 %{?dtsenable}
 
 cd NTS
-%{_bindir}/phpize
+%{_bindir}/phpize7
 %configure \
     --enable-redis \
     --enable-redis-session \
     --enable-redis-igbinary \
     --enable-redis-lzf \
     --with-liblzf \
-    --with-php-config=%{_bindir}/php-config
+    --with-php-config=%{_bindir}/php7-config
 make %{?_smp_mflags}
-
-%if %{with_zts}
-cd ../ZTS
-%{_bindir}/zts-phpize
-%configure \
-    --enable-redis \
-    --enable-redis-session \
-    --enable-redis-igbinary \
-    --enable-redis-lzf \
-    --with-liblzf \
-    --with-php-config=%{_bindir}/zts-php-config
-make %{?_smp_mflags}
-%endif
-
 
 %install
 %{?dtsenable}
@@ -176,12 +163,6 @@ make %{?_smp_mflags}
 # Install the NTS stuff
 make -C NTS install INSTALL_ROOT=%{buildroot}
 install -D -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
-
-%if %{with_zts}
-# Install the ZTS stuff
-make -C ZTS install INSTALL_ROOT=%{buildroot}
-install -D -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
-%endif
 
 # Install the package XML file
 install -D -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
@@ -199,13 +180,6 @@ done
     --define extension=igbinary.so \
     --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so \
     --modules | grep %{pecl_name}
-
-%if %{with_zts}
-%{__ztsphp} --no-php-ini \
-    --define extension=igbinary.so \
-    --define extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so \
-    --modules | grep %{pecl_name}
-%endif
 
 %if %{with_tests}
 cd NTS/tests
@@ -251,12 +225,6 @@ exit $ret
 
 %{php_extdir}/%{pecl_name}.so
 %config(noreplace) %{php_inidir}/%{ini_name}
-
-%if %{with_zts}
-%{php_ztsextdir}/%{pecl_name}.so
-%config(noreplace) %{php_ztsinidir}/%{ini_name}
-%endif
-
 
 %changelog
 * Thu Mar 14 2019 Remi Collet <remi@remirepo.net> - 4.3.0-1

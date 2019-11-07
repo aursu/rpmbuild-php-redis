@@ -1,0 +1,42 @@
+language: minimal
+
+services:
+  - docker
+
+addons:
+  apt:
+    packages:
+      - docker-ce
+
+env:
+  global:
+    - DOCKER_COMPOSE_VERSION=1.24.1
+    - PACKAGE_VCS_URL=https://github.com/aursu/rpmbuild-php-redis
+  jobs:
+    - BUILD_COMPOSE_FILE=docker-compose.yml       BINTRAY_REPO=php71custom BUILD=centos7redis      UPLOADER=centos7bintray
+    - BUILD_COMPOSE_FILE=docker-compose.yml       BINTRAY_REPO=php71custom BUILD=centos7redisrel   UPLOADER=centos7bintray
+    - BUILD_COMPOSE_FILE=docker-compose.yml       BINTRAY_REPO=php71custom BUILD=centos8redis      UPLOADER=centos8bintray
+    - BUILD_COMPOSE_FILE=docker-compose.yml       BINTRAY_REPO=php71custom BUILD=centos8redisrel   UPLOADER=centos8bintray
+    - BUILD_COMPOSE_FILE=docker-compose.php73.yml BINTRAY_REPO=php73custom BUILD=centos7redisphp73 UPLOADER=centos7bintray
+    - BUILD_COMPOSE_FILE=docker-compose.php73.yml BINTRAY_REPO=php73custom BUILD=centos8redisphp73 UPLOADER=centos8bintray
+
+before_install:
+  - sudo curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+  - sudo chmod +x /usr/local/bin/docker-compose
+
+install: skip
+
+before_script:
+  - docker-compose -f ${BUILD_COMPOSE_FILE} build --no-cache ${BUILD}
+
+script:
+  - docker-compose -f ${BUILD_COMPOSE_FILE} up ${BUILD}
+
+before_deploy:
+  - docker-compose -f rpmbuild/docker-compose.bintray.yml pull ${UPLOADER}
+
+deploy:
+  provider: script
+  script: docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm -e BINTRAY_USER=$BINTRAY_USER -e BINTRAY_API_KEY=$BINTRAY_API_KEY -e BINTRAY_REPO=$BINTRAY_REPO -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL ${UPLOADER}
+  on:
+    all_branches: true
