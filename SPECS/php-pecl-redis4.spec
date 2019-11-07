@@ -3,7 +3,7 @@
 #
 # remirepo spec file for php-pecl-redis4
 #
-# Copyright (c) 2012-2018 Remi Collet
+# Copyright (c) 2012-2019 Remi Collet
 # License: CC-BY-SA
 # http://creativecommons.org/licenses/by-sa/4.0/
 #
@@ -19,7 +19,7 @@
 # after 40-igbinary
 %global ini_name    50-%{pecl_name}.ini
 
-%global upstream_version 4.2.0
+%global upstream_version 4.3.0
 #global upstream_prever  RC2
 
 Summary:       Extension for communicating with the Redis key-value store
@@ -113,6 +113,8 @@ extension = %{pecl_name}.so
 ;session.save_path = "tcp://host1:6379?weight=1, tcp://host2:6379?weight=2&timeout=2.5, tcp://host3:6379?weight=2"
 
 ; Configuration
+;redis.arrays.algorithm = ''
+;redis.arrays.auth = ''
 ;redis.arrays.autorehash = 0
 ;redis.arrays.connecttimeout = 0
 ;redis.arrays.distributor = ''
@@ -125,10 +127,14 @@ extension = %{pecl_name}.so
 ;redis.arrays.previous = ''
 ;redis.arrays.readtimeout = 0
 ;redis.arrays.retryinterval = 0
+;redis.arrays.consistent = 0
+;redis.clusters.auth = 0
 ;redis.clusters.persistent = 0
 ;redis.clusters.read_timeout = 0
 ;redis.clusters.seeds = ''
 ;redis.clusters.timeout = 0
+;redis.pconnect.pooling_enabled = 0
+;redis.pconnect.connection_limit = 0
 ;redis.session.locking_enabled = 0
 ;redis.session.lock_expire = 0
 ;redis.session.lock_retries = 10
@@ -253,6 +259,13 @@ exit $ret
 
 
 %changelog
+* Thu Mar 14 2019 Remi Collet <remi@remirepo.net> - 4.3.0-1
+- update to 4.3.0 (stable)
+
+* Mon Feb  4 2019 Remi Collet <remi@remirepo.net> - 4.2.0-2
+- add upstream patch to fix FTBFS with recent redis version
+  reported as https://github.com/phpredis/phpredis/issues/1472
+
 * Sun Nov 18 2018 Remi Collet <remi@remirepo.net> - 4.2.0-1
 - update to 4.2.0 (stable)
 - temporarily disable test suite on s390x

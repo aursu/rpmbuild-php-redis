@@ -1,4 +1,7 @@
-FROM aursu/peclbuild:7-php7-igbinary-7.1
+ARG centos=7
+ARG image=php7-igbinary-7.1
+
+FROM aursu/peclbuild:${centos}-${image}
 
 RUN yum -y install \
         redis \

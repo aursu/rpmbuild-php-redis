@@ -2,21 +2,11 @@ version: 2
 jobs:
   build71:
     machine:
-      docker_layer_caching: true
+      image: ubuntu-1604:201903-01
     environment:
       BINTRAY_REPO: php71custom
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-redis
     steps:
-      - run:
-          name: Upgrade Docker CE
-          command: |
-            sudo apt-get update
-            sudo apt-get install docker-ce=18.03.1~ce-0~ubuntu
-      - run:
-          name: Upgrade Docker Compose
-          command: |
-            sudo curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
       - checkout
       - run:
           name: Git submodules sync
@@ -25,14 +15,7 @@ jobs:
             git submodule update --init
       - run:
           name: Pull images for RPM build docker services
-          command: |
-            docker-compose -f rpmbuild/docker-compose.yml pull
-            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
-      - run:
-          name: Start docker services for rpmbuild
-          command: docker-compose -f rpmbuild/docker-compose.yml up -d
-          background: true
-          no_output_timeout: 2h
+          command: docker-compose -f rpmbuild/docker-compose.bintray.yml pull
       - run:
           name: Build Docker images
           command: docker-compose build --no-cache --pull
@@ -51,76 +34,14 @@ jobs:
               -e BINTRAY_USER=$BINTRAY_USER \
               -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
               -e BINTRAY_REPO=$BINTRAY_REPO \
-              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos6bintray
-  build5:
-    machine:
-      docker_layer_caching: true
-    environment:
-      BINTRAY_REPO: php5custom
-      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-redis
-    steps:
-      - run:
-          name: Upgrade Docker CE
-          command: |
-            sudo apt-get update
-            sudo apt-get install docker-ce=18.03.1~ce-0~ubuntu
-      - run:
-          name: Upgrade Docker Compose
-          command: |
-            sudo curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-      - checkout
-      - run:
-          name: Git submodules sync
-          command: |
-            git submodule sync
-            git submodule update --init
-      - run:
-          name: Pull images for RPM build docker services
-          command: |
-            docker-compose -f rpmbuild/docker-compose.yml pull
-            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
-      - run:
-          name: Start docker services for rpmbuild
-          command: docker-compose -f rpmbuild/docker-compose.yml up -d
-          background: true
-          no_output_timeout: 2h
-      - run:
-          name: Build Docker images (PHP 5)
-          command: docker-compose -f docker-compose.php5.yml build --no-cache --pull
-      - run:
-          name: Build RPM packages (PHP 5)
-          command: docker-compose -f docker-compose.php5.yml up
-      - run:
-          name: Upload RPM packages into Bintray
-          command: |
-            docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
-              -e BINTRAY_USER=$BINTRAY_USER \
-              -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
-              -e BINTRAY_REPO=$BINTRAY_REPO \
-              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos7bintray
-            docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
-              -e BINTRAY_USER=$BINTRAY_USER \
-              -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
-              -e BINTRAY_REPO=$BINTRAY_REPO \
-              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos6bintray
+              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos8bintray
   build73:
     machine:
-      docker_layer_caching: true
+      image: ubuntu-1604:201903-01
     environment:
       BINTRAY_REPO: php73custom
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-redis
     steps:
-      - run:
-          name: Upgrade Docker CE
-          command: |
-            sudo apt-get update
-            sudo apt-get install docker-ce=18.03.1~ce-0~ubuntu
-      - run:
-          name: Upgrade Docker Compose
-          command: |
-            sudo curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
       - checkout
       - run:
           name: Git submodules sync
@@ -129,14 +50,7 @@ jobs:
             git submodule update --init
       - run:
           name: Pull images for RPM build docker services
-          command: |
-            docker-compose -f rpmbuild/docker-compose.yml pull
-            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
-      - run:
-          name: Start docker services for rpmbuild
-          command: docker-compose -f rpmbuild/docker-compose.yml up -d
-          background: true
-          no_output_timeout: 2h
+          command: docker-compose -f rpmbuild/docker-compose.bintray.yml pull
       - run:
           name: Build Docker images (PHP 7.3)
           command: docker-compose -f docker-compose.php73.yml build --no-cache --pull
@@ -151,11 +65,15 @@ jobs:
               -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
               -e BINTRAY_REPO=$BINTRAY_REPO \
               -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos7bintray
+            docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
+              -e BINTRAY_USER=$BINTRAY_USER \
+              -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
+              -e BINTRAY_REPO=$BINTRAY_REPO \
+              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos8bintray
 
 workflows:
   version: 2
   redisbuild:
     jobs:
       - build71
-      - build5
       - build73

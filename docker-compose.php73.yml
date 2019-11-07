@@ -8,6 +8,15 @@ services:
       context: .
       args:
         image: php-igbinary-7.3
+  centos8redisphp73:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm8:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      args:
+        centos: 8
+        image: php-igbinary-7.3
 
 volumes:
   rpms:

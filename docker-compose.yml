@@ -13,19 +13,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.rel
-  centos6redis:
+  centos8redis:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
-      - rpm6:/home/centos/rpmbuild/RPMS
+      - rpm8:/home/centos/rpmbuild/RPMS
     build:
       context: .
       args:
-        centos: 6
+        centos: 8
 
 volumes:
   rpms:
     name: rpms
-  rpm6:
-    name: rpm6
   rpm7:
     name: rpm7
+  rpm8:
+    name: rpm8
