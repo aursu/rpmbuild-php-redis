@@ -19,6 +19,9 @@ env:
     - BUILD_COMPOSE_FILE=docker-compose.yml       BINTRAY_REPO=php71custom BUILD=centos8redisrel   UPLOADER=centos8bintray
     - BUILD_COMPOSE_FILE=docker-compose.php73.yml BINTRAY_REPO=php73custom BUILD=centos7redisphp73 UPLOADER=centos7bintray
     - BUILD_COMPOSE_FILE=docker-compose.php73.yml BINTRAY_REPO=php73custom BUILD=centos8redisphp73 UPLOADER=centos8bintray
+    - BUILD_COMPOSE_FILE=docker-compose.php74.yml BINTRAY_REPO=php74custom BUILD=centos7redisphp74 UPLOADER=centos7bintray
+    - BUILD_COMPOSE_FILE=docker-compose.php74.yml BINTRAY_REPO=php74custom BUILD=centos8redisphp74 UPLOADER=centos8bintray
+
 
 before_install:
   - sudo curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
