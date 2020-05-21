@@ -7,6 +7,7 @@ services:
     build:
       context: .
       args:
+        centos: $OS7
         image: php-igbinary-7.4
   centos8redisphp74:
     volumes:
@@ -15,7 +16,7 @@ services:
     build:
       context: .
       args:
-        centos: 8
+        centos: $OS8
         image: php-igbinary-7.4
 
 volumes:

@@ -1,4 +1,4 @@
-ARG centos=7
+ARG centos=7.8.2003
 ARG image=php7-igbinary-7.1
 
 FROM aursu/peclbuild:${centos}-${image}

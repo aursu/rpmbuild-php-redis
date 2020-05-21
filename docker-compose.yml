@@ -6,6 +6,8 @@ services:
       - rpm7:/home/centos/rpmbuild/RPMS
     build:
       context: .
+      args:
+        centos: $OS7
   centos7redisrel:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
@@ -13,6 +15,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.rel
+      args:
+        centos: $OS7
   centos8redis:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
@@ -20,16 +24,16 @@ services:
     build:
       context: .
       args:
-        centos: 8
+        centos: $OS8
   centos8redisrel:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
       - rpm8:/home/centos/rpmbuild/RPMS
     build:
       context: .
-      args:
-        centos: 8
       dockerfile: Dockerfile.rel
+      args:
+        centos: $OS8
 
 volumes:
   rpms:

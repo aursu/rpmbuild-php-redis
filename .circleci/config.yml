@@ -1,79 +1,44 @@
-version: 2
-jobs:
-  build71:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      BINTRAY_REPO: php71custom
-      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-redis
-    steps:
-      - checkout
-      - run:
-          name: Git submodules sync
-          command: |
-            git submodule sync
-            git submodule update --init
-      - run:
-          name: Pull images for RPM build docker services
-          command: docker-compose -f rpmbuild/docker-compose.bintray.yml pull
-      - run:
-          name: Build Docker images
-          command: docker-compose build --no-cache --pull
-      - run:
-          name: Build RPM packages
-          command: docker-compose up
-      - run:
-          name: Upload RPM packages into Bintray
-          command: |
-            docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
-              -e BINTRAY_USER=$BINTRAY_USER \
-              -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
-              -e BINTRAY_REPO=$BINTRAY_REPO \
-              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos7bintray
-            docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
-              -e BINTRAY_USER=$BINTRAY_USER \
-              -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
-              -e BINTRAY_REPO=$BINTRAY_REPO \
-              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos8bintray
-  build73:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      BINTRAY_REPO: php73custom
-      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-redis
-    steps:
-      - checkout
-      - run:
-          name: Git submodules sync
-          command: |
-            git submodule sync
-            git submodule update --init
-      - run:
-          name: Pull images for RPM build docker services
-          command: docker-compose -f rpmbuild/docker-compose.bintray.yml pull
-      - run:
-          name: Build Docker images (PHP 7.3)
-          command: docker-compose -f docker-compose.php73.yml build --no-cache --pull
-      - run:
-          name: Build RPM packages (PHP 7.3)
-          command: docker-compose -f docker-compose.php73.yml up
-      - run:
-          name: Upload RPM packages into Bintray
-          command: |
-            docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
-              -e BINTRAY_USER=$BINTRAY_USER \
-              -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
-              -e BINTRAY_REPO=$BINTRAY_REPO \
-              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos7bintray
-            docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
-              -e BINTRAY_USER=$BINTRAY_USER \
-              -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
-              -e BINTRAY_REPO=$BINTRAY_REPO \
-              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos8bintray
+version: 2.1
+
+orbs:
+  docker-rpmbuild: aursu/rpmbuild@1.1.0
 
 workflows:
-  version: 2
-  redisbuild:
+  igbinarybuild:
     jobs:
-      - build71
-      - build73
+      - docker-rpmbuild/build:
+          name: centos7redis
+          build_service: centos7redis
+          bintray_uploader: centos7bintray
+      - docker-rpmbuild/build:
+          name: centos7redisrel
+          build_service: centos7redisrel
+          bintray_uploader: centos7bintray
+      - docker-rpmbuild/build:
+          name: centos8redis
+          build_service: centos8redis
+          bintray_uploader: centos8bintray
+      - docker-rpmbuild/build:
+          name: centos8redisrel
+          build_service: centos8redisrel
+          bintray_uploader: centos8bintray
+      - docker-rpmbuild/build:
+          name: centos7redisphp73
+          build_file: docker-compose.php73.yml
+          build_service: centos7redisphp73
+          bintray_uploader: centos7bintray
+      - docker-rpmbuild/build:
+          name: centos8redisphp73
+          build_file: docker-compose.php73.yml
+          build_service: centos8redisphp73
+          bintray_uploader: centos8bintray
+      - docker-rpmbuild/build:
+          name: centos7redisphp74
+          build_file: docker-compose.php74.yml
+          build_service: centos7redisphp74
+          bintray_uploader: centos7bintray
+      - docker-rpmbuild/build:
+          name: centos8redisphp74
+          build_file: docker-compose.php74.yml
+          build_service: centos8redisphp74
+          bintray_uploader: centos8bintray
