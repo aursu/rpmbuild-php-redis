@@ -11,16 +11,8 @@ workflows:
           build_service: centos7redis
           bintray_uploader: centos7bintray
       - docker-rpmbuild/build:
-          name: centos7redisrel
-          build_service: centos7redisrel
-          bintray_uploader: centos7bintray
-      - docker-rpmbuild/build:
           name: centos8redis
           build_service: centos8redis
-          bintray_uploader: centos8bintray
-      - docker-rpmbuild/build:
-          name: centos8redisrel
-          build_service: centos8redisrel
           bintray_uploader: centos8bintray
       - docker-rpmbuild/build:
           name: centos7redisphp73
@@ -33,12 +25,12 @@ workflows:
           build_service: centos8redisphp73
           bintray_uploader: centos8bintray
       - docker-rpmbuild/build:
-          name: centos7redisphp74
-          build_file: docker-compose.php74.yml
-          build_service: centos7redisphp74
+          name: centos7redisphp80
+          build_file: docker-compose.php80.yml
+          build_service: centos7redisphp80
           bintray_uploader: centos7bintray
       - docker-rpmbuild/build:
-          name: centos8redisphp74
-          build_file: docker-compose.php74.yml
-          build_service: centos8redisphp74
+          name: centos8redisphp80
+          build_file: docker-compose.php80.yml
+          build_service: centos8redisphp80
           bintray_uploader: centos8bintray

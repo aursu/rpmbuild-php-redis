@@ -1,6 +1,6 @@
 version: "3.5"
 services:
-  centos7redisphp74:
+  centos7redisphp80:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
       - rpm7:/home/centos/rpmbuild/RPMS
@@ -8,8 +8,8 @@ services:
       context: .
       args:
         centos: $OS7
-        image: php-igbinary-7.4
-  centos8redisphp74:
+        image: php-igbinary-8.0
+  centos8redisphp80:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
       - rpm8:/home/centos/rpmbuild/RPMS
@@ -17,7 +17,7 @@ services:
       context: .
       args:
         centos: $OS8
-        image: php-igbinary-7.4
+        image: php-igbinary-8.0
 
 volumes:
   rpms:

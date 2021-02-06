@@ -1,0 +1,44 @@
+version: "3.5"
+services:
+  centos7redisphp71:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm7:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      args:
+        centos: 7.8.2003
+  centos7redisphp71rel:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm7:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      dockerfile: Dockerfile.rel
+      args:
+        centos: 7.8.2003
+  centos8redisphp71:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm8:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      args:
+        centos: 8.1.1911
+  centos8redisphp71rel:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm8:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      dockerfile: Dockerfile.rel
+      args:
+        centos: 8.1.1911
+
+volumes:
+  rpms:
+    name: rpms
+  rpm7:
+    name: rpm7
+  rpm8:
+    name: rpm8

@@ -12,14 +12,12 @@ env:
   global:
     - PACKAGE_VCS_URL=https://github.com/aursu/rpmbuild-php-redis
   jobs:
-    - BUILD_COMPOSE_FILE=docker-compose.yml       BINTRAY_REPO=php71custom BUILD=centos7redis      UPLOADER=centos7bintray
-    - BUILD_COMPOSE_FILE=docker-compose.yml       BINTRAY_REPO=php71custom BUILD=centos7redisrel   UPLOADER=centos7bintray
-    - BUILD_COMPOSE_FILE=docker-compose.yml       BINTRAY_REPO=php71custom BUILD=centos8redis      UPLOADER=centos8bintray
-    - BUILD_COMPOSE_FILE=docker-compose.yml       BINTRAY_REPO=php71custom BUILD=centos8redisrel   UPLOADER=centos8bintray
+    - BUILD_COMPOSE_FILE=docker-compose.yml       BINTRAY_REPO=php74custom BUILD=centos7redis      UPLOADER=centos7bintray
+    - BUILD_COMPOSE_FILE=docker-compose.yml       BINTRAY_REPO=php74custom BUILD=centos8redis      UPLOADER=centos8bintray
     - BUILD_COMPOSE_FILE=docker-compose.php73.yml BINTRAY_REPO=php73custom BUILD=centos7redisphp73 UPLOADER=centos7bintray
     - BUILD_COMPOSE_FILE=docker-compose.php73.yml BINTRAY_REPO=php73custom BUILD=centos8redisphp73 UPLOADER=centos8bintray
-    - BUILD_COMPOSE_FILE=docker-compose.php74.yml BINTRAY_REPO=php74custom BUILD=centos7redisphp74 UPLOADER=centos7bintray
-    - BUILD_COMPOSE_FILE=docker-compose.php74.yml BINTRAY_REPO=php74custom BUILD=centos8redisphp74 UPLOADER=centos8bintray
+    - BUILD_COMPOSE_FILE=docker-compose.php80.yml BINTRAY_REPO=php8custom  BUILD=centos7redisphp80 UPLOADER=centos7bintray
+    - BUILD_COMPOSE_FILE=docker-compose.php80.yml BINTRAY_REPO=php8custom  BUILD=centos8redisphp80 UPLOADER=centos8bintray
 
 before_script:
   - docker-compose -f ${BUILD_COMPOSE_FILE} build --no-cache ${BUILD}
